@@ -5,18 +5,22 @@ class Play extends Phaser.Scene {
 
     init() {
         this.enemySpawnDelay = 2500
-        console.log("PLAY.js || INIT")
+        
         this.JUMP_VELOCITY = -700
         this.MAX_JUMPS = 2
        // this.physics.world.gravity.y = 2500
         this.low=100
         this.high =350
-        this.score=0
-        this.gameDone=false;
+        
+    
     
     }
 
     create() {
+        enemySpeed=200
+        this.level=0
+        score=0
+        this.gameDone=false;
         // display score
         let scoreConfig = {
         fontFamily: 'Courier',
@@ -30,9 +34,10 @@ class Play extends Phaser.Scene {
         },
         }
 
-        
-
+        this.leveSound = this.sound.add('levelUp');
+        this.jumpSound = this.sound.add('jump');
         this.backgroundMusic = this.sound.add('beat');
+        this.deadMusic=this.sound.add('dead');
         this.backgroundMusic.loop = true; 
         this.backgroundMusic.play();
         this.add.image(0,0,'background').setOrigin(0)
@@ -45,7 +50,7 @@ class Play extends Phaser.Scene {
         this.keyTop=this.add.tileSprite(0, -80, 640, 640, 'keyTop').setOrigin(0, 0)
 
 
-        this.player = new Wizard (this,100,100,'wizard').setOrigin(0.5, 0).setScale(3)
+        this.player = new Wizard (this,150,100,'wizard').setOrigin(0.5, 0).setScale(3)
 
         this.physics.add.collider(this.player,this.keys, (player,keys)=> {
             if(!this.touching){
@@ -56,7 +61,7 @@ class Play extends Phaser.Scene {
             this.touching =true
         });
 
-        this.scoreLeft = this.add.text(10, 20, this.score, scoreConfig)
+        this.scoreLeft = this.add.text(10, 20, score, scoreConfig)
         cursors = this.input.keyboard.createCursorKeys() 
 
 
@@ -64,10 +69,12 @@ class Play extends Phaser.Scene {
         this.Enemygroup = this.add.group({
             runChildUpdate: true    // make sure update runs on group children
         })
-        // wait a few seconds before spawning barriers
-        this.time.delayedCall(this.enemySpawnDelay, () => { 
-            this.addEnemy() 
-        })
+        // wait a few seconds before spawning enemys
+        
+            this.time.delayedCall(this.enemySpawnDelay, () => { 
+                this.addEnemy() 
+            })
+        
 
         // set up difficulty timer (triggers callback every second)
         this.difficultyTimer = this.time.addEvent({
@@ -78,7 +85,8 @@ class Play extends Phaser.Scene {
         })
 
         this.physics.add.collider(this.player,this.Enemygroup, (player,enemy)=> {
-            console.log("your dead")
+            this.player.anims.stop
+
             this.gameOver()
         });
 
@@ -87,10 +95,10 @@ class Play extends Phaser.Scene {
 
     update() {
         if(!this.gameDone){
-            this.score++;
+            score++;
         }
         this.scoreLeft.tint = Math.random() * 0xFFFFFF
-        this.scoreLeft.text = this.score
+        this.scoreLeft.text = score
         // debug key listener (assigned to D key)
         this.input.keyboard.on('keydown-D', function() {
             this.physics.world.drawDebug = this.physics.world.drawDebug ? false : true
@@ -106,20 +114,25 @@ class Play extends Phaser.Scene {
         // check if player is grounded
 	    this.player.isGrounded = this.player.body.touching.down
 	    // if so, we have jumps to spare
-	    if(this.player.isGrounded) {
+	    if(!this.gameDone&&this.player.isGrounded) {
             this.player.anims.play('run', true)
 	    	this.jumps = this.MAX_JUMPS
 	    	this.jumping = false
-	    } else {
+            
+	    } else if(!this.gameDone) {
 	    	this.player.anims.play('jump')
-	    }
+            
+        }
+	    
+      
 
         // allow steady velocity change up to a certain key down duration
         // see: https://photonstorm.github.io/phaser3-docs/Phaser.Input.Keyboard.html#.DownDuration__anchor
-	     if(this.jumps > 0 && Phaser.Input.Keyboard.DownDuration(cursors.up, 150)) {
+	     if(!this.gameDone&&this.jumps > 0 && Phaser.Input.Keyboard.DownDuration(cursors.up, 150)) {
 	         this.player.body.velocity.y = this.JUMP_VELOCITY
 	         this.jumping = true
              this.touching =false
+             //this.jumpSound.play()
 	       
 	     } 
         // // finally, letting go of the UP key subtracts a jump
@@ -132,19 +145,53 @@ class Play extends Phaser.Scene {
        
     }
 
+    levelBump(){
+        enemySpeed+=5
+        this.level++
+       // console.log('enemyspeedinceased')
+        if(this.level%25==0){
+            if(this.level<100){
+            this.addEnemy()
+            this.leveSound.play()
+            }
+        }
+        
+    }
+
   // create new barriers and add them to existing barrier group
   addEnemy() {
     let speedVariance =  Phaser.Math.Between(0, 50)
     let enemy = new Evil(this, -enemySpeed -speedVariance).setScale(2)
-    //enemy.setGravityY(0);
     this.Enemygroup.add(enemy)
 }
 
 gameOver(){
+    //this.deadMusic.play
+    this.gameDone=true
+    let highScoreText = {
+        fontFamily: 'Courier',
+        fontSize: '30px',
+        color: '#000000',
+        align: 'center',
+
+        }
     this.backgroundMusic.stop();
+    this.deadMusic.play();
     this.player.anims.stop
     this.touching =true
-    
+
+    if(score>highScore){
+        highScore=score
+
+        this.add.text(200, 200, "NEW HIGHSCORE!", highScoreText)
+    }
+
+    this.player.anims.play('Dead',true).once('animationcomplete', ()=>{
+        this.scene.start('gameOverScene')
+    })
+    // this.time.delayedCall(2500, () => { 
+        
+    // })
 
 }
 

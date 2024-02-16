@@ -17,6 +17,7 @@ class Evil extends Phaser.Physics.Arcade.Sprite {
         this.setVelocityX(velocity) 
         this.body.allowGravity = false         // make it go!
         this.newEnemy = true 
+        this.setImmovable()
         this.body.setSize(this.width/2, this.height )
                 
     }

@@ -18,7 +18,7 @@ let config = {
           }
       }
   },
-    scene:[Load,Menu,Play]
+    scene:[Load,Menu,Play,GameOver]
   }
 let game = new Phaser.Game(config)
 
@@ -33,4 +33,9 @@ const textSpacer = 64
 let run_speed=8
 let enemySpeed=200
 let cursors
-let highScore
+let highScore=0
+let score
+
+//Creatve tilt
+//Let the player create music by playing random notes in key
+//to create a lead for the drum beat in the background

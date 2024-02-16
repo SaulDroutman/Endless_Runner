@@ -28,6 +28,11 @@ class Load extends Phaser.Scene {
             frameHeight: 24,
         })
 
+        this.load.spritesheet('wizardDeath', 'img/wizardDeath.png', {
+            frameWidth: 24,
+            frameHeight: 24,
+        })
+
         this.load.image('colors', 'img/colors.png')
         this.load.image('background', 'img/background.png')
         this.load.image('keys', 'img/keys.png')
@@ -37,6 +42,8 @@ class Load extends Phaser.Scene {
         this.load.image('Title', 'img/Name.png')
         this.load.image('evil1', 'img/evilNote1.png')
         this.load.image('evil2', 'img/evilNote2.png')
+        this.load.image('GameOver','img/GameOversScreen.png')
+        
         
         // load audio assets
         this.load.audio('beat', 'sound/drumLoop.mp3')
@@ -48,8 +55,11 @@ class Load extends Phaser.Scene {
         this.load.audio('note6', 'sound/note_6.mp3')
         this.load.audio('note7', 'sound/note_7.mp3')
         this.load.audio('note8', 'sound/note_8.mp3')
-
-        console.log("LOAD.js || PRELOAD")
+        this.load.audio('dead','sound/Wizard_dead.mp3')
+        this.load.audio('select','sound/Blip_select_5.wav')
+        this.load.audio('jump','sound/Jump_6.wav')
+        this.load.audio('levelUp','sound/Powerup_6.wav')
+        //console.log("LOAD.js || PRELOAD")
     }
 
     create() {
@@ -64,6 +74,13 @@ class Load extends Phaser.Scene {
             frames: this.anims.generateFrameNumbers('wizardJump', { frames: [ 0]}),
             frameRate: run_speed,
             repeat: -1
+        })
+
+        this.anims.create({
+            key: 'Dead',
+            frames: this.anims.generateFrameNumbers('wizardDeath', { frames: [ 0,1,2,3]}),
+            frameRate: 4,
+            repeat: 0
         })
         
         this.scene.start('MenuScene')
